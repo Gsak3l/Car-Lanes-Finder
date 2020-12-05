@@ -14,11 +14,12 @@ def canny(image_canny):
 
 # creates a polygon (or triangle) on top of the image, to specify where the road approximately is
 def region_of_interest(image_interest):
-    height = image_interest.shape[0]  # getting the height of the image
+    height = image_interest.shape[0]  # getting the height of the imge
     polygons = np.array([[(200, height), (1100, height), (550, 250)]])
-    image_interest = np.zeros_like(image_interest)  # same amount of pixels, thus same dimensions the original image
-    cv2.fillPoly(image_interest, polygons, 255)  # filling the mask with the white triangle
-    return image_interest
+    mask = np.zeros_like(image_interest)  # same amount of pixels, thus same dimensions the original image
+    cv2.fillPoly(mask, polygons, 255)  # filling the mask with the white triangle
+    masked_image = cv2.bitwise_and(image_interest, mask)  # this isolates the region of interest in this specific case
+    return masked_image
 
 
 # loading the image, this returns a multidimensional array that contains all the relative intensities for each pixel
@@ -26,9 +27,9 @@ image = cv2.imread('media/test_image.png')
 lane_image = np.copy(image)  # copying the image
 canny = canny(lane_image)  # calling the function canny
 
-interest = region_of_interest(canny)  # calling the function region_of_interest
+cropped_image = region_of_interest(canny)
 
-cv2.imshow('result', interest)  # render ing the image
+cv2.imshow('result', cropped_image)  # render ing the image
 cv2.waitKey(0)  # without that, the image would disappear really fast, 0 = infinite
 
 # plt.imshow(canny)
