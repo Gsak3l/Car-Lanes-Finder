@@ -8,8 +8,12 @@ def make_coordinates(image, line_parameters):
     y1 = image.shape[0]
     y2 = int(y1 * (3 / 5))  # this should be 422 in this case, starting point
     # y = mx + b => x = (y - b) / m
-    x1 = int((y1 - intercept) / slope)
-    x2 = int((y2 - intercept) / slope)
+    try:
+        x1 = int((y1 - intercept) / slope)
+        x2 = int((y2 - intercept) / slope)
+    except:
+        x1 = 0
+        x2 = 0
     return np.array([x1, y1, x2, y2])
 
 
@@ -29,8 +33,12 @@ def average_slope_intercept(image, lines_):
     left_fit_average = np.average(left_fit, axis=0)
     right_fit_average = np.average(right_fit, axis=0)
     # calling the function for both left and right slope and intercept averages
-    left_line = make_coordinates(image, left_fit_average)
-    right_line = make_coordinates(image, right_fit_average)
+    try:
+        left_line = make_coordinates(image, left_fit_average)
+        right_line = make_coordinates(image, right_fit_average)
+    except:
+        left_line = [0, 0, 0, 0]
+        right_line = [0, 0, 0, 0]
     return np.array([left_line, right_line])
 
 
@@ -64,19 +72,29 @@ def display_lines(image, lines_):
 
 
 # loading the image, this returns a multidimensional array that contains all the relative intensities for each pixel
-original_image = cv2.imread('media/test_image.png')
-lane_image = np.copy(original_image)  # copying the image
-canny_image = canny(lane_image)  # calling the function canny
-cropped_image = region_of_interest(canny_image)  # calling the function region_of_interest
-# precision in pixels, degree of precision, and threshold, empty array, length of a line in px, max distance in px
-# long story short this took me about 1 hour and a half to understand, and detects lines in the image
-lines = cv2.HoughLinesP(cropped_image, 2, np.pi / 180, 100, np.array([]), minLineLength=40, maxLineGap=5)
-averaged_lines = average_slope_intercept(lane_image, lines)
-line_image = display_lines(lane_image, averaged_lines)  # calling the function
-combo_image = cv2.addWeighted(lane_image, 0.8, line_image, 1, 1)  # 0.8 and 1 is the weight of the image
-
-cv2.imshow('result', combo_image)  # rendering the image
-cv2.waitKey(0)  # without that, the image would disappear really fast, 0 = infinite, goes away when pressing a key
+# original_image = cv2.imread('media/test_image.png')
+# lane_image = np.copy(original_image)  # copying the image
 
 # plt.imshow(canny)
 # plt.show()
+if __name__ == '__main__':
+    cap = cv2.VideoCapture('media/test_video.mp4')  # importing the video
+    while cap.isOpened():
+        _, frame = cap.read()
+        try:
+            canny_image = canny(frame)  # calling the function canny
+            cropped_image = region_of_interest(canny_image)  # calling the function region_of_interest
+            # precision in pixels, degree of precision, and threshold, empty array, length of a line in px, max distance
+            # in px, long story short this took me about 1 hour and a half to understand, and detects lines in the image
+            lines = cv2.HoughLinesP(cropped_image, 2, np.pi / 180, 100, np.array([]), minLineLength=40, maxLineGap=5)
+            averaged_lines = average_slope_intercept(frame, lines)
+            line_image = display_lines(frame, averaged_lines)  # calling the function
+            combo_image = cv2.addWeighted(frame, 0.8, line_image, 1, 1)  # 0.8 and 1 is the weight of the image
+            cv2.imshow('result', combo_image)  # rendering the image
+            if cv2.waitKey(1) & 0xFF == ord('q'):  # if x button clicked
+                break
+        except:
+            pass
+    # for good practices
+    cap.release()
+    cv2.destroyAllWindows()
