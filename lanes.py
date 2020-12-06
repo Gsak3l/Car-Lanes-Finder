@@ -91,10 +91,10 @@ if __name__ == '__main__':
             line_image = display_lines(frame, averaged_lines)  # calling the function
             combo_image = cv2.addWeighted(frame, 0.8, line_image, 1, 1)  # 0.8 and 1 is the weight of the image
             cv2.imshow('result', combo_image)  # rendering the image
-            if cv2.waitKey(1) & 0xFF == ord('q'):  # if x button clicked
-                break
         except:
             pass
+        if cv2.waitKey(20) & 0xFF == ord('q'):  # if x button clicked
+            break
     # for good practices
     cap.release()
     cv2.destroyAllWindows()
