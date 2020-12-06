@@ -8,8 +8,8 @@ def make_coordinates(image, line_parameters):
     y1 = image.shape[0]
     y2 = int(y1 * (3 / 5))  # this should be 422 in this case, starting point
     # y = mx + b => x = (y - b) / m
-    x1 = int(y1 - (intercept / slope))
-    x2 = int(y2 - (intercept / slope))
+    x1 = int((y1 - intercept) / slope)
+    x2 = int((y2 - intercept) / slope)
     return np.array([x1, y1, x2, y2])
 
 
@@ -31,6 +31,7 @@ def average_slope_intercept(image, lines_):
     # calling the function for both left and right slope and intercept averages
     left_line = make_coordinates(image, left_fit_average)
     right_line = make_coordinates(image, right_fit_average)
+    return np.array([left_line, right_line])
 
 
 # makes the image black and white when there is a big color change
@@ -71,10 +72,10 @@ cropped_image = region_of_interest(canny_image)  # calling the function region_o
 # long story short this took me about 1 hour and a half to understand, and detects lines in the image
 lines = cv2.HoughLinesP(cropped_image, 2, np.pi / 180, 100, np.array([]), minLineLength=40, maxLineGap=5)
 averaged_lines = average_slope_intercept(lane_image, lines)
-line_image = display_lines(lane_image, lines)  # calling the function
+line_image = display_lines(lane_image, averaged_lines)  # calling the function
 combo_image = cv2.addWeighted(lane_image, 0.8, line_image, 1, 1)  # 0.8 and 1 is the weight of the image
 
-cv2.imshow('result', combo_image)  # render ing the image
+cv2.imshow('result', combo_image)  # rendering the image
 cv2.waitKey(0)  # without that, the image would disappear really fast, 0 = infinite, goes away when pressing a key
 
 # plt.imshow(canny)
